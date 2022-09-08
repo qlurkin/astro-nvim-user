@@ -116,6 +116,7 @@ local config = {
 				"Pocco81/auto-save.nvim",
 				as = "auto-save",
 			},
+			-- { "nvim-treesitter/nvim-treesitter-context" },
 		},
 		-- All other entries override the setup() call for default plugins
 		["null-ls"] = function(config)
@@ -129,16 +130,16 @@ local config = {
 				null_ls.builtins.formatting.prettier,
 			}
 			-- set up null-ls's on_attach function
-			config.on_attach = function(client)
-				-- NOTE: You can remove this on attach function to disable format on save
-				if client.resolved_capabilities.document_formatting then
-					vim.api.nvim_create_autocmd("BufWritePre", {
-						desc = "Auto format before save",
-						pattern = "<buffer>",
-						callback = vim.lsp.buf.formatting_sync,
-					})
-				end
-			end
+			-- config.on_attach = function(client)
+			-- 	-- NOTE: You can remove this on attach function to disable format on save
+			-- 	if client.resolved_capabilities.document_formatting then
+			-- 		vim.api.nvim_create_autocmd("BufWritePre", {
+			-- 			desc = "Auto format before save",
+			-- 			pattern = "<buffer>",
+			-- 			callback = vim.lsp.buf.formatting_sync,
+			-- 		})
+			-- 	end
+			-- end
 			return config -- return final config table
 		end,
 		treesitter = {
@@ -159,7 +160,7 @@ local config = {
 			},
 		},
 		["neo-tree"] = {
-			close_if_last_window = false,
+			close_if_last_window = true,
 		},
 		packer = {
 			compile_path = vim.fn.stdpath("data") .. "/packer_compiled.lua",
@@ -200,6 +201,7 @@ local config = {
 		-- easily add or disable built in mappings added during LSP attaching
 		mappings = {
 			n = {
+				-- ["<leader>lf"] = { "<cmd>lua vim.lsp.buf.formatting_sync()<CR>", desc = "Format Document" },
 				-- ["<leader>lf"] = false -- disable formatting keymap
 			},
 		},
@@ -249,6 +251,7 @@ local config = {
 			["<leader>bc"] = { "<cmd>BufferLinePickClose<cr>", desc = "Pick to close" },
 			["<leader>bj"] = { "<cmd>BufferLinePick<cr>", desc = "Pick to jump" },
 			["<leader>bt"] = { "<cmd>BufferLineSortByTabs<cr>", desc = "Sort by tabs" },
+			["<leader>lf"] = { "<cmd>lua vim.lsp.buf.formatting_sync()<CR>", desc = "Format Document" },
 			-- quick save
 			-- ["<C-s>"] = { ":w!<cr>", desc = "Save File" },  -- change description but the same command
 		},
@@ -285,6 +288,16 @@ local config = {
 			group = "packer_conf",
 			pattern = "plugins.lua",
 			command = "source <afile> | PackerSync",
+		})
+
+		-- exit current luasnip (node) when leaving insert mode
+		vim.api.nvim_create_autocmd("InsertLeave", {
+  		callback = function()
+    		if require("luasnip").session.current_nodes[vim.api.nvim_get_current_buf()]
+      		and not require("luasnip").session.jump_active then
+      		require("luasnip").unlink_current()
+    		end
+  		end,
 		})
 
 		-- Set up custom filetypes
